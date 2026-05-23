@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyMarshal</title>
+    <link rel="stylesheet" href="css/main.css">
+    <script src="https://kit.fontawesome.com/ecfd500718.js" crossorigin="anonymous"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+    <div class="nav">
+        <div class="title">
+            <h1>SkyMarshal Operation Centre</h1>
+        </div>
+        <div class="button1"><i class="fa-solid fa-bars"></i></div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="main">
+        <div class="dashboard-container">
+            
+            <div class="dashboard-header">
+                <div class="drone-info">
+                    <h2>Podgląd: Drone #01</h2>
+                    <span class="status-badge ready">Gotowy do lotu</span>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="launch-btn"><i class="fa-solid fa-rocket"></i> Uruchom</button>
+                    <a href="index.html">
+                        <button class="back-btn"><i class="fa-solid fa-arrow-left"></i> Powrót do listy</button>
+                    </a>
+                </div>
+            </div>
+
+            <div class="telemetry-grid">
+                <div class="card distance-card">
+                    <div class="card-icon"><i class="fa-solid fa-person-rays"></i></div>
+                    <div class="card-data">
+                        <h3>Dystans do celu</h3>
+                        <p class="value" id="distance-value">--</p>
+                        <span class="subtext" id="distance-subtext">Wybierz cel misji</span>
+                    </div>
+                </div>
+                <div class="card battery-card">
+                    <div class="card-icon"><i class="fa-solid fa-battery-three-quarters"></i></div>
+                    <div class="card-data">
+                        <h3>Bateria</h3>
+                        <p class="value">100%</p>
+                        <div class="progress-bar"><div class="progress" style="width: 100%;"></div></div>
+                        <span class="subtext">Pozostało: ok. 22 min</span>
+                    </div>
+                </div>
+
+                <div class="card speed-card">
+                    <div class="card-icon"><i class="fa-solid fa-gauge"></i></div>
+                    <div class="card-data">
+                        <h3>Prędkość</h3>
+                        <p class="value">0 km/h</p>
+                        <span class="subtext">Wiatr: 12 km/h (Boczny)</span>
+                    </div>
+                </div>
+
+                <div class="card alt-card">
+                    <div class="card-icon"><i class="fa-solid fa-mountain"></i></div>
+                    <div class="card-data">
+                        <h3>Wysokość</h3>
+                        <p class="value">0 m</p>
+                        <span class="subtext">Nad poziomem gruntu</span>
+                    </div>
+                </div>
+
+            </div> </div> </div> 
+
+            <div class="podglad" title="Podgląd mapy w czasie rzeczywistym">
+        <i class="fa-solid fa-map-location-dot"></i>
+       
+
+    </div>
+     <div id="map-modal" class="map-modal">
+        <div class="modal-content">
+            <button class="close-modal-btn">&times;</button>
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    <script src="js/main2.js"></script>
+    <script src="js/main.js"></script>
+
+    
+</body>
+</html>

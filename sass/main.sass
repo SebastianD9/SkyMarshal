@@ -1,0 +1,616 @@
+@use 'color'
+
+body
+  background-color: color.$white
+  margin: 0
+
+.nav
+  display: flex
+  flex-direction: row
+  justify-content: space-between 
+  align-items: center            
+  width: 100%
+  margin: 0
+  padding: .5em 1em
+  box-sizing: border-box         
+
+  h1
+    color: black
+    font-family: "Noto Sans JP", sans-serif
+    font-optical-sizing: auto
+    font-weight: 400
+    margin: 0   
+    font-size: 1.2em                
+
+  .button1 
+    font-size: 1.5em            
+    color: color.$color1
+
+.line 
+  width: 100%
+  height: .2em
+  background-color: color.$color1
+
+.main
+  display: flex
+  flex-direction: column
+  align-items: center 
+  font-family: "Noto Sans JP", sans-serif
+  padding: 1em 0
+  position: relative 
+
+  // =========================================================================
+  // BLOK WYSZUKIWANIA I FILTROWANIA (ZINTEGROWANY)
+  // =========================================================================
+  .search-filter-wrapper
+    width: 90%
+    margin: 1em 0 1.5em 0
+    display: flex
+    flex-wrap: wrap
+    gap: 15px
+    align-items: flex-end // Równa input, select i przyciski idealnie do dolnej krawędzi
+    font-family: "Noto Sans JP", sans-serif
+
+    // 1. INPUT (Wyszukiwarka z wbudowanym przyciskiem "Podgląd" i listą podpowiedzi)
+    .search-box
+      flex: 1.5 
+      min-width: 280px
+      position: relative // Punkt odniesienia dla listy podpowiedzi
+      display: flex
+      flex-direction: column 
+      align-items: stretch
+
+      .search-icon
+        position: absolute
+        left: 1em
+        top: 20px // Centrowanie w pionie dla inputa o wysokości 40px
+        transform: translateY(-50%)
+        color: #888888
+        font-size: 0.9em
+        z-index: 3
+
+      input
+        width: 100%
+        height: 40px 
+        padding: 0 7.5em 0 2.8em // Miejsce na ikonkę z lewej i przycisk z prawej
+        border: 1.5px solid #e0e0e0
+        border-radius: 0.5em 
+        font-size: 1em
+        font-family: inherit
+        color: #333
+        background-color: color.$white
+        outline: none
+        box-sizing: border-box
+        transition: border-color 0.3s ease, box-shadow 0.3s ease
+        z-index: 1
+
+        &:focus
+          border-color: color.$color1
+          box-shadow: 0 0 0 3px rgba(color.$color1, 0.1)
+
+      // PRZYCISK WEWNĄTRZ INPUTA - PO PRAWEJ STRONIE
+      .inline-preview-btn
+        position: absolute
+        right: 4px 
+        top: 4px
+        height: 32px 
+        padding: 0 1em
+        background-color: #f1f5f9
+        border: 1px solid #cbd5e1
+        color: #475569
+        border-radius: 0.4em
+        font-family: inherit
+        font-size: 0.85em
+        font-weight: 500
+        display: flex
+        align-items: center
+        gap: 0.4em
+        cursor: pointer
+        transition: all 0.2s ease
+        z-index: 2
+        white-space: nowrap 
+
+        &:hover
+          background-color: color.$color1
+          border-color: color.$color1
+          color: color.$white
+
+        &:active
+          transform: scale(0.96)
+
+      // AKTUALIZACJA: STYLIZACJA DYNAMICZNEJ LISTY AUTOPODPOWIEDZI
+      .autocomplete-results
+        position: absolute
+        top: 42px // Wyświetla listę dokładnie 2px pod inputem
+        left: 0
+        right: 0
+        background-color: color.$white
+        border: 1.5px solid #e0e0e0
+        border-radius: 0.5em
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) // Mocny cień nakładający listę nad tabelę
+        z-index: 9999 // Wyskakuje nad nagłówki tabeli i inne filtry
+        max-height: 220px
+        overflow-y: auto
+        display: none 
+        box-sizing: border-box
+
+        &.active
+          display: block
+
+        .autocomplete-item
+          padding: 0.75em 1em
+          cursor: pointer
+          font-size: 0.9em
+          color: #333
+          text-align: left
+          transition: background-color 0.15s ease
+          
+          &:first-child
+            border-radius: 0.5em 0.5em 0 0
+          
+          &:last-child
+            border-radius: 0 0 0.5em 0.5em
+
+          &:hover
+            background-color: rgba(color.$color1, 0.08)
+            color: color.$color1
+
+    // 2. SELECT WRAPPER (Wybór rodzaju zdarzenia)
+    .select-wrapper
+      display: flex
+      flex-direction: column
+      align-items: flex-start
+      gap: 0.4em
+      flex-grow: 1
+      min-width: 180px
+
+      label
+        font-size: 0.85em
+        color: #666666
+        font-weight: 500
+        white-space: nowrap
+
+      select
+        width: 100%
+        height: 40px 
+        padding: 0 1.5em 0 1em
+        border: 1.5px solid #e0e0e0
+        border-radius: 0.5em 
+        font-size: 0.95em
+        font-family: inherit
+        color: #333333
+        background-color: color.$white
+        outline: none
+        cursor: pointer
+        box-sizing: border-box
+        transition: border-color 0.2s ease
+
+        &:focus
+          border-color: color.$color1
+
+    // 3. PRZYCISKI (Główny Search oraz Czyszczenie)
+    .search-button, .clear-filters-btn
+      height: 40px 
+      border-radius: 0.5em 
+      font-family: inherit
+      font-size: 1em
+      font-weight: 500
+      display: flex
+      align-items: center
+      justify-content: center
+      box-sizing: border-box
+      cursor: pointer
+      transition: all 0.2s ease
+
+      &:active
+        transform: scale(0.98) 
+
+    // Przycisk Search
+    .search-button
+      padding: 0 1.5em
+      background-color: color.$color1
+      color: color.$white
+      border: none
+
+      &:hover
+        background-color: color.$color2 
+
+    // Przycisk Wyczyść Filtry
+    .clear-filters-btn
+      background: none
+      border: 1.5px solid rgba(#b71c1c, 0.2) 
+      color: #b71c1c
+      padding: 0 1.2em
+      gap: 0.4em
+      opacity: 0.8
+
+      &:hover
+        opacity: 1
+        background-color: rgba(#b71c1c, 0.05) 
+        border-color: #b71c1c
+
+    // Responsywność dla mniejszych ekranów
+    @media (max-width: 650px)
+      flex-direction: column
+      align-items: stretch 
+      
+      .select-wrapper, .search-button, .clear-filters-btn
+        width: 100% 
+
+      .search-box 
+        width: 100%
+        min-width: 0 
+  
+  .listDrones
+    width: 99%
+    margin: 0em 0
+    overflow-x: auto 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05)
+    border-radius: .5em
+
+    table
+      width: 100%
+      border-collapse: collapse 
+      background-color: color.$white
+      text-align: left
+      font-size: 0.95em
+
+      th, td
+        padding: 1em
+        border-bottom: 1px solid #e0e0e0 
+
+      th
+        background-color: color.$color1
+        color: color.$white
+        font-weight: 500
+        text-transform: uppercase
+        font-size: 0.85em
+        letter-spacing: 0.05em
+
+      tr:last-child td
+        border-bottom: none 
+
+      tr:hover
+        background-color: rgba(color.$color1, 0.03) 
+  
+      a, .link-td
+        color: color.$color1
+        text-decoration: underline
+        font-weight: 500
+        
+        &:hover
+          text-decoration: underline
+
+      .status-active
+        color: #2e7d32 
+        font-weight: 500
+        &::before
+          content: '● '
+          font-size: 0.8em
+
+      .status-charging
+        color: #ef6c00 
+        font-weight: 500
+        &::before
+          content: '⚡ '
+          font-size: 0.9em
+
+/*===============================================================================================*/
+// NAGŁÓWEK DASHBOARDU
+.dashboard-header
+  display: flex
+  justify-content: space-between
+  align-items: center
+  width: 100%
+  padding-bottom: 0.5em
+  border-bottom: 1px solid #f0f0f0
+
+  @media (max-width: 680px)
+    flex-direction: column
+    align-items: flex-start
+    gap: 1em
+
+  .drone-info
+    display: flex
+    align-items: center
+    gap: 1em
+
+    h2
+      margin: 0
+      font-size: 1.5em
+      font-weight: 500
+      color: #1a1a1a
+
+    .status-badge
+      font-size: 0.85em
+      padding: 0.3em 0.9em
+      border-radius: 2em
+      font-weight: 500
+      letter-spacing: 0.03em
+      display: flex
+      align-items: center
+      gap: 0.4em
+      min-width: 110px           
+      justify-content: center
+
+      &::before
+        content: ''
+        display: inline-block
+        width: 8px
+        height: 8px
+        border-radius: 50%
+
+      &.active
+        background-color: #e8f5e9
+        color: #2e7d32
+        border: 1px solid rgba(#2e7d32, 0.2)
+        &::before
+          background-color: #2e7d32
+          animation: pulse 2s infinite
+
+      &.ready
+        background-color: #e3f2fd
+        color: #1565c0
+        border: 1px solid rgba(#1565c0, 0.2)
+        &::before
+          background-color: #1565c0
+
+  .header-actions
+    display: flex
+    align-items: center
+    gap: 0.8em
+
+    a
+      text-decoration: none
+
+  .launch-btn
+    background-color: #e53935
+    color: color.$white
+    border: none
+    padding: 0.6em 1.4em
+    border-radius: 0.5em
+    cursor: pointer
+    font-family: inherit
+    font-size: 0.9em
+    font-weight: 500
+    display: flex
+    align-items: center
+    gap: 0.5em
+    transition: background-color 0.2s ease, transform 0.1s ease
+    box-shadow: 0 2px 6px rgba(#e53935, 0.2)
+
+    &:hover
+      background-color: #d32f2f
+
+    &:active
+      transform: scale(0.98)
+
+  .back-btn
+    background-color: transparent
+    border: 1.5px solid #dcdcdc
+    padding: 0.6em 1.2em
+    border-radius: 0.5em
+    cursor: pointer
+    font-family: inherit
+    font-size: 0.9em
+    font-weight: 500
+    color: #555
+    display: flex
+    align-items: center
+    gap: 0.5em
+    transition: all 0.2s ease-in-out
+
+    &:hover
+      background-color: #f8f9fa
+      border-color: color.$color1
+      color: color.$color1
+
+/*===============================================================================================*/
+// SIATKA TELEMETRII
+.dashboard-container
+  width: 90%
+  margin: 1.5em auto
+  display: flex
+  flex-direction: column
+  gap: 1.5em
+  font-family: "Noto Sans JP", sans-serif
+
+.telemetry-grid
+  display: grid
+  grid-template-columns: repeat(4, 1fr)
+  gap: 1em
+
+  @media (max-width: 900px)
+    grid-template-columns: repeat(2, 1fr)
+
+  @media (max-width: 500px)
+    grid-template-columns: 1fr
+
+// KARTA BAZOWA
+.card
+  display: flex
+  flex-direction: row
+  align-items: center
+  gap: 1.2em
+  padding: 1.2em 1.4em
+  border-radius: 0.8em
+  border: 1.5px solid #e0e0e0
+  background-color: color.$white
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05)
+  transition: box-shadow 0.2s ease
+
+  &:hover
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1)
+
+  .card-icon
+    font-size: 2em
+    color: color.$color1
+    min-width: 1.5em
+    text-align: center
+
+  .card-data
+    display: flex
+    flex-direction: column
+    gap: 0.2em
+
+    h3
+      margin: 0
+      font-size: 0.8em
+      font-weight: 500
+      color: #888
+      text-transform: uppercase
+      letter-spacing: 0.05em
+
+    .value
+      margin: 0
+      font-size: 1.6em
+      font-weight: 500
+      color: #1a1a1a
+      line-height: 1.1
+
+    .progress-bar
+      width: 100%
+      height: 5px
+      background-color: #e0e0e0
+      border-radius: 999px
+      margin-top: 0.3em
+      overflow: hidden
+
+      .progress
+        height: 100%
+        background-color: color.$color1
+        border-radius: 999px
+        transition: width 0.4s ease
+
+    .subtext
+      font-size: 0.78em
+      color: #aaa
+      margin-top: 0.1em
+
+// WARIANTY KOLORYSTYCZNE KART
+.battery-card
+  .card-icon
+    color: #2e7d32
+
+  .card-data .progress .progress
+    background-color: #2e7d32
+
+.distance-card
+  .card-icon
+    color: #1565c0
+
+.speed-card
+  .card-icon
+    color: #e53935
+
+.alt-card
+  .card-icon
+    color: #6a1b9a
+
+// PŁYWAJĄCY PRZYCISK PODGLĄDU MAPY
+.podglad
+  position: fixed 
+  bottom: .5em
+  right: .5em
+  width: 3.5em
+  height: 3.5em
+  border-radius: 50%
+  background-color: color.$color1
+  color: color.$white
+  
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 1.2em
+  
+  cursor: pointer
+  box-shadow: 0 4px 15px rgba(color.$color1, 0.4)
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease
+  z-index: 999 
+
+  &:hover
+    transform: scale(1.08)
+    box-shadow: 0 6px 20px rgba(color.$color1, 0.6)
+
+  &:active
+    transform: scale(0.95)
+
+  &.skanowanie
+    &::after
+      content: ''
+      position: absolute
+      width: 100%
+      height: 100%
+      border-radius: 50%
+      background-color: color.$color1
+      opacity: 0.4
+      z-index: -1
+      animation: sonarPulse 2s infinite ease-out
+
+// ANIMACJA RADARU / SONARU
+@keyframes sonarPulse
+  0%
+    transform: scale(1)
+    opacity: 0.4
+  100%
+    transform: scale(1.6)
+    opacity: 0
+    
+// MODAL MAPY (PEŁNY EKRAN O WYSOKIM Z-INDEX)
+.map-modal
+  display: none 
+  position: fixed
+  top: 0
+  left: 0
+  width: 100vw
+  height: 100vh
+  background-color: rgba(#0f172a, 0.85) 
+  z-index: 10000 
+  justify-content: center
+  align-items: center
+  backdrop-filter: blur(5px) 
+
+  &.active
+    display: flex
+
+  .modal-content
+    position: relative
+    width: 90vw
+    height: 85vh
+    background-color: #1e293b
+    border: 1px solid #334155
+    border-radius: 12px
+    overflow: hidden
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6)
+
+    #map-container
+      width: 100%
+      height: 100%
+      
+      #map
+        width: 100%
+        height: 100%
+
+    .close-modal-btn
+      position: absolute
+      top: 15px
+      right: 20px
+      background: rgba(#0f172a, 0.6)
+      border: 1px solid #334155
+      color: #f8fafc
+      font-size: 2rem
+      line-height: 1
+      width: 45px
+      height: 45px
+      border-radius: 50%
+      cursor: pointer
+      z-index: 10005
+      display: flex
+      align-items: center
+      justify-content: center
+      transition: background-color 0.2s, transform 0.2s
+
+      &:hover
+        background-color: #ef4444
+        border-color: #ef4444
+        transform: rotate(90deg)

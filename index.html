@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyMarshal</title>
+    <link rel="stylesheet" href="css/main.css">
+    <script src="https://kit.fontawesome.com/ecfd500718.js" crossorigin="anonymous"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body>
+    <div class="nav">
+        <div class="title">
+            <h1>SkyMarshal Operation Centre</h1>
+        </div>
+        <div class="button1"><i class="fa-solid fa-bars"></i></div>
+    </div>
+    <div class="line"></div>
+    <div class="main">
+
+        <div class="search-filter-wrapper">
+            
+            <div class="search-box">
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <input type="text" id="location-input" placeholder="Wpisz lokalizację..." autocomplete="off">
+    <div id="autocomplete-list" class="autocomplete-results"></div>
+    
+    <button class="inline-preview-btn" title="Pokaż tę lokalizację na mapie">
+        <i class="fa-solid fa-location-dot"></i> Podgląd
+    </button>
+</div>
+
+            <div class="select-wrapper">
+                <label for="service-select">Rodzaj zdarzenia</label>
+                <select id="service-select" data-type="service">
+                    <option value="">Wszystkie</option>
+                    <option value="Policja">Pożar</option>
+                    <option value="Straż">Powódź</option>
+                    <option value="Kryzysowe">Napaść</option>
+                    <option value="Inne">Inne</option>
+                </select>
+            </div>
+
+            <button class="search-button">Search</button>
+            <button class="clear-filters-btn"><i class="fa-solid fa-trash-can"></i> Wyczyść filtry</button>
+
+        </div>
+
+        <div class="listDrones">
+            <table>
+                <tr>
+                    <th>Model</th>
+                    <th>Służba</th> 
+                    <th>Stan</th>
+                    <th>Akcja</th> 
+                </tr>
+                <tr data-service="Policja" data-station="Centrum">
+                    <td>Drone #00</td>
+                    <td>Policja</td>
+                    <td><span class="status-active">Aktywny</span></td>
+                    <td><a href="index2.html">Podgląd</a></td>
+                </tr>
+                <tr data-service="Straż" data-station="Strefa HSW">
+                    <td>Drone #01</td>
+                    <td>Straż (PSP)</td>
+                    <td><span class="status-active">Aktywny</span></td>
+                    <td><a href="index2.html">Podgląd</a></td>
+                </tr>
+                <tr data-service="Straż" data-station="San">
+                    <td>Drone #02</td>
+                    <td>Straż (OSP)</td>
+                    <td><span class="status-charging">Ładuje się</span></td>
+                    <td>Baza</td>
+                </tr>
+                <tr data-service="Kryzysowe" data-station="Strefa HSW">
+                    <td>Drone #03</td>
+                    <td>Kryzysowe</td>
+                    <td><span class="status-active">Aktywny</span></td>
+                    <td><a href="index2.html">Podgląd</a></td>
+                </tr>
+                <tr data-service="Inne" data-station="Centrum">
+                    <td>Drone #04</td>
+                    <td>Inne</td>
+                    <td><span class="status-active">Aktywny</span></td>
+                    <td><a href="#">Podgląd</a></td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+    <div class="map-modal">
+        <div class="modal-content">
+            <button class="close-modal-btn" title="Zamknij mapę">&times;</button>
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    <script src="js/main.js"></script>
+    <script src="js/main2.js"></script>
+</body>
+</html>
