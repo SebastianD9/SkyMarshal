@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. GLOBALNE ZMIENNE I INICJALIZACJA DOM
     // =========================================================================
     let leafletMap = null;
+    let markerCelu = null;
 
     let wybraneCoords = [50.5850, 22.0520]; 
     let debounceTimer;
@@ -55,8 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     leafletMap.invalidateSize(); 
                     leafletMap.setView(wybraneCoords, 14);
 
-                    const bounds = L.latLngBounds([coordsDrona, wybraneCoords]);
-                    leafletMap.fitBounds(bounds, { padding: [50, 50] });
+                    if (markerCelu) {
+                        markerCelu.setLatLng(wybraneCoords);
+                    } else {
+                        markerCelu = L.circleMarker(wybraneCoords, {
+                            radius: 10,
+                            color: '#b91c1c', 
+                            fillColor: '#b91c1c',
+                            fillOpacity: 0.8,
+                            weight: 2
+                        }).addTo(leafletMap);
+                    }
+                    
+                    markerCelu.bindPopup(`<b>Wyszukana pozycja:</b><br>${inputValue || "Centrum Operacyjne Stalowa Wola"}`).openPopup();
                 }
             }, 500); 
         });
@@ -83,8 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
             debounceTimer = setTimeout(() => {
                 if (locationInput.value.trim().length < 3) return;
 
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=5`;
-
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=5&viewbox=22.014,50.507,22.098,50.616&bounded=1`;
+            
                 fetch(url, {
                     method: 'GET',
                     headers: {
@@ -148,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 listLoc.classList.remove("active");
             }
 
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=1`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pl&limit=5&viewbox=22.014,50.507,22.098,50.616&bounded=1`;
 
             try {
                 const response = await fetch(url, { headers: { 'Accept-Language': 'pl' } });

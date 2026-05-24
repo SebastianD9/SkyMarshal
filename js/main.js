@@ -67,10 +67,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Filtrowanie + sortowanie po kliknięciu Search
     // -------------------------------------------------------------------------
     const filtrujISort = () => {
-        const celRaw = localStorage.getItem("celDrona");
-        const cel    = celRaw ? JSON.parse(celRaw) : null;
+        const celRaw  = localStorage.getItem("celDrona");
+        const cel     = celRaw ? JSON.parse(celRaw) : null;
         const rows    = tableRows();
-        const wyznaczonaSluzba = serviceSelect ? serviceSelect.value : '';
+        const wybraneZdarzenie = serviceSelect ? serviceSelect.value : '';
+
+        const mapowanieZdarzen = {
+            'pozar': ['Straż', 'Inne'],
+            'powodz': ['Kryzysowe', 'Straż'],
+            'katastrofa': ['Kryzysowe', 'Straż', 'Policja', 'Inne'],
+            'zaginiecie': ['Policja'],
+            'zabezpieczenie': ['Policja'],
+            'transport': ['Inne']
+        };
 
         rows.forEach(row => {
             // ZAWSZE domyślnie pokazujemy wiersz na starcie pętli
@@ -87,10 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 2. Filtrowanie po wybranej służbie (z selecta)
-            if (wyznaczonaSluzba && serviceData !== wyznaczonaSluzba) {
-                row.style.display = 'none';
-                row.dataset.dystans = Infinity;
-                return;
+            if (wybraneZdarzenie) {
+                const wymaganaSluzba = mapowanieZdarzen[wybraneZdarzenie];
+                if (!wymaganaSluzba.includes(serviceData)) {
+                    row.style.display = 'none';
+                    row.dataset.dystans = Infinity;
+                    return;
+                }
             }
 
             // 3. Nieaktywne (ładujące się) – ukryj w normalnym trybie wyszukiwania
