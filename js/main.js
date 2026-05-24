@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchButton = document.querySelector('.search-button');
     const clearButton = document.querySelector('.clear-filters-btn');
     const serviceSelect = document.querySelector('.select-wrapper select');
-    const tableRows = document.querySelectorAll('.listDrones table tr');
+    const tableRows = () => Array.from(document.querySelectorAll('.listDrones table tr')).slice(1);
 
-    let isResetState = true;
+    // Zmienna pomocnicza informująca, czy właśnie czyścimy filtry
+    let czyCzyszczone = false;
 
     // -------------------------------------------------------------------------
     // Pomocnicza: oblicz odległość liniową w metrach między dwoma [lat, lng]
@@ -19,14 +20,46 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.sqrt(latM * latM + lngM * lngM);
     };
 
-    // Pozycje baz – muszą odpowiadać numerom dronów w tabeli (kolejność wierszy)
-    const POZYCJE_DRONOW = [
-        [50.5850, 22.0520], // Drone #00 – Baza Północ
-        [50.5480, 22.0650], // Drone #01 – Baza Południe
-        [50.5650, 22.0150], // Drone #02 – Baza Zachód
-        [50.5708, 22.0567], // Drone #03
-        [50.5720, 22.0610], // Drone #04
-    ];
+    // Mapowanie ID drona na nazwę i współrzędne
+    const DRONE_DATA_PODGLAD = {
+        drone00: { name: 'Drone #00', coords: [50.593352, 22.037311] },
+        drone01: { name: 'Drone #01', coords: [50.571415, 22.069184] },
+        drone02: { name: 'Drone #02', coords: [50.547381, 22.051606] },
+        drone03: { name: 'Drone #03', coords: [50.593352, 22.037311] },
+        drone04: { name: 'Drone #04', coords: [50.571415, 22.069184] },
+        drone05: { name: 'Drone #05', coords: [50.547381, 22.051606] },
+        drone06: { name: 'Drone #06', coords: [50.593352, 22.037311] },
+        drone07: { name: 'Drone #07', coords: [50.571415, 22.069184] },
+        drone08: { name: 'Drone #08', coords: [50.547381, 22.051606] },
+        drone09: { name: 'Drone #09', coords: [50.593352, 22.037311] },
+        drone10: { name: 'Drone #10', coords: [50.571415, 22.069184] },
+        drone11: { name: 'Drone #11', coords: [50.547381, 22.051606] },
+        drone12: { name: 'Drone #12', coords: [50.593352, 22.037311] },
+        drone13: { name: 'Drone #13', coords: [50.571415, 22.069184] },
+        drone14: { name: 'Drone #14', coords: [50.547381, 22.051606] },
+        drone15: { name: 'Drone #15', coords: [50.593352, 22.037311] },
+        drone16: { name: 'Drone #16', coords: [50.571415, 22.069184] } 
+    };
+
+    const POZYCJE_DRONOW_BY_ID = {
+        drone00: [50.593352, 22.037311],
+        drone01: [50.571415, 22.069184],
+        drone02: [50.547381, 22.051606],
+        drone03: [50.593352, 22.037311],
+        drone04: [50.571415, 22.069184],
+        drone05: [50.547381, 22.051606],
+        drone06: [50.593352, 22.037311],
+        drone07: [50.571415, 22.069184],
+        drone08: [50.547381, 22.051606],
+        drone09: [50.593352, 22.037311],
+        drone10: [50.571415, 22.069184],
+        drone11: [50.547381, 22.051606],
+        drone12: [50.593352, 22.037311],
+        drone13: [50.571415, 22.069184],
+        drone14: [50.547381, 22.051606],
+        drone15: [50.593352, 22.037311],
+        drone16: [50.571415, 22.069184]
+    };
 
     const MAX_DYSTANS = 2500; // metry
 
@@ -36,58 +69,82 @@ document.addEventListener('DOMContentLoaded', () => {
     const filtrujISort = () => {
         const celRaw = localStorage.getItem("celDrona");
         const cel    = celRaw ? JSON.parse(celRaw) : null;
+        const rows    = tableRows();
+        const wyznaczonaSluzba = serviceSelect ? serviceSelect.value : '';
 
-        const tbody   = document.querySelector('.listDrones table');
-        const rows    = Array.from(document.querySelectorAll('.listDrones table tr')).slice(1); // bez nagłówka
+        rows.forEach(row => {
+            // ZAWSZE domyślnie pokazujemy wiersz na starcie pętli
+            row.style.display = '';
+            
+            const aktywny = row.querySelector('.status-active') !== null;
+            const droneId = row.getAttribute('data-id');
+            const serviceData = row.getAttribute('data-service');
 
-        rows.forEach((row, i) => {
-            // 1. Aktywny status
-            const statusEl = row.cells[2]?.querySelector('span');
-            const aktywny  = statusEl && statusEl.classList.contains('status-active');
+            // 1. Jeśli kliknięto "Wyczyść filtry", ignorujemy resztę blokad i pokazujemy wszystko
+            if (czyCzyszczone) {
+                row.dataset.dystans = 0;
+                return;
+            }
 
+            // 2. Filtrowanie po wybranej służbie (z selecta)
+            if (wyznaczonaSluzba && serviceData !== wyznaczonaSluzba) {
+                row.style.display = 'none';
+                row.dataset.dystans = Infinity;
+                return;
+            }
+
+            // 3. Nieaktywne (ładujące się) – ukryj w normalnym trybie wyszukiwania
             if (!aktywny) {
                 row.style.display = 'none';
                 row.dataset.dystans = Infinity;
                 return;
             }
 
-            // 2. Jeśli cel wybrany – licz dystans i filtruj
+            // 4. Dla aktywnych – filtruj po odległości od celu
             if (cel) {
-                const pos     = POZYCJE_DRONOW[i] ?? [50.5708, 22.0567];
-                const dystans = liniowaDystans(pos, cel);
-                row.dataset.dystans = dystans;
-
-                if (dystans > MAX_DYSTANS) {
-                    row.style.display = 'none';
+                const pos = POZYCJE_DRONOW_BY_ID[droneId];
+                if (pos) {
+                    const dystans = liniowaDystans(pos, cel);
+                    row.dataset.dystans = dystans;
+                    if (dystans > MAX_DYSTANS) {
+                        row.style.display = 'none';
+                    }
                 } else {
-                    row.style.display = '';
+                    row.dataset.dystans = Infinity;
+                    row.style.display = 'none';
                 }
             } else {
-                // Brak celu – pokaż wszystkich aktywnych bez dystansu
-                row.style.display = '';
                 row.dataset.dystans = 0;
-                const badge = row.querySelector('.dystans-badge');
-                if (badge) badge.remove();
             }
         });
 
-        // 3. Sortuj widoczne wiersze rosnąco po dystansie
-        if (cel) {
-            const widoczne   = rows.filter(r => r.style.display !== 'none');
+        // Przebudowanie tabeli (sortowanie) – zapobiega "pogubieniu" wierszy w DOM
+        const table = document.querySelector('.listDrones table');
+        if (cel && !czyCzyszczone) {
+            const widoczne = rows.filter(r => r.style.display !== 'none');
             const niewidoczne = rows.filter(r => r.style.display === 'none');
-
+            
             widoczne.sort((a, b) => parseFloat(a.dataset.dystans) - parseFloat(b.dataset.dystans));
-
-            const table = document.querySelector('.listDrones table');
-            widoczne.forEach(r  => table.appendChild(r));
+            
+            widoczne.forEach(r => table.appendChild(r));
             niewidoczne.forEach(r => table.appendChild(r));
+        } else {
+            // Przywrócenie domyślnej kolejności według ID drona (drone00 -> drone16)
+            rows.sort((a, b) => {
+                return a.getAttribute('data-id').localeCompare(b.getAttribute('data-id'));
+            });
+            rows.forEach(r => table.appendChild(r));
         }
-
-        isResetState = false;
     };
 
+    window.applyDroneFilters = filtrujISort;
+
     if (searchButton) {
-        searchButton.addEventListener('click', filtrujISort);
+        searchButton.addEventListener('click', () => {
+            czyCzyszczone = false;
+            filtrujISort();
+            saveListState();
+        });
     }
 
     if (searchInput) {
@@ -98,18 +155,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (clearButton) {
         clearButton.addEventListener('click', () => {
-            searchInput.value = '';
-            serviceSelect.value = '';
-
-            // Usuń odznaki dystansu i przywróć wszystkie wiersze
-            document.querySelectorAll('.listDrones table tr').forEach((row, i) => {
-                if (i === 0) return;
-                row.style.display = '';
-            });
-
-            isResetState = true;
+            if (searchInput) searchInput.value = '';
+            if (serviceSelect) serviceSelect.value = '';
+            
+            localStorage.removeItem('celDrona');
+            localStorage.removeItem('celDronaText');
+            localStorage.removeItem('listState');
+            
+            // Ustawiamy flagę, by funkcja pokazała również drony ładujące się
+            czyCzyszczone = true;
+            filtrujISort();
         });
     }
+
+    const saveListState = () => {
+        const locationValue = searchInput ? searchInput.value : '';
+        const serviceValue = serviceSelect ? serviceSelect.value : '';
+        localStorage.setItem('listState', JSON.stringify({
+            location: locationValue,
+            service: serviceValue
+        }));
+    };
+
+    const restoreListState = () => {
+        const state = localStorage.getItem('listState');
+        if (state) {
+            try {
+                const { location, service } = JSON.parse(state);
+                if (location && searchInput) searchInput.value = location;
+                if (service && serviceSelect) serviceSelect.value = service;
+            } catch(e) {}
+        }
+        const savedText = localStorage.getItem('celDronaText');
+        if (savedText && searchInput) searchInput.value = savedText;
+    };
+
+    // Zapisz stan przed opuszczeniem strony
+    document.querySelectorAll('.listDrones table a[data-drone-id]').forEach(link => {
+        link.addEventListener('click', () => {
+            const droneId = link.getAttribute('data-drone-id');
+            localStorage.setItem('currentDroneId', droneId);
+            saveListState();
+        });
+    });
 
     // =========================================================================
     // SEKCJA 2: DASHBOARD DRONA & SYMULACJA
@@ -137,22 +225,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAlt   = 0;
     let currentSpeed = 0;
 
-    // Ustaw dystans do celu na karcie distance-card przy załadowaniu strony
+    let currentDroneId = localStorage.getItem('currentDroneId') || 'drone01';
+    const dronePodglad = DRONE_DATA_PODGLAD[currentDroneId] || DRONE_DATA_PODGLAD['drone01'];
+
+    const droneInfoHeader = document.querySelector('.drone-info h2');
+    if (droneInfoHeader) {
+        droneInfoHeader.textContent = `Podgląd: ${dronePodglad.name}`;
+    }
+
     const ustawDystansPoczatkowy = () => {
         const celRaw = localStorage.getItem("celDrona");
         if (!celRaw || !distanceValue || !distanceSubtext) return;
-
+        
         const cel = JSON.parse(celRaw);
-        // Pozycja drona #01 (index2.html)
-        const pozDrona = [50.5480, 22.0650];
-        const dystans  = liniowaDystans(pozDrona, cel);
-
-        currentDistance = dystans / 1000; // km (używane wewnętrznie do symulacji)
+        const pozDrona = dronePodglad.coords;
+        const dystans = liniowaDystans(pozDrona, cel);
+        currentDistance = dystans / 1000;
         distanceValue.textContent = `${Math.round(dystans)} m`;
-
-        const totalSec = Math.round(currentDistance * 1000 / (48 / 3.6)); // ~48 km/h przelot
-        const etaMin   = Math.floor(totalSec / 60);
-        const etaSec   = totalSec % 60;
+        const totalSec = Math.round(currentDistance * 1000 / (48 / 3.6));
+        const etaMin = Math.floor(totalSec / 60);
+        const etaSec = totalSec % 60;
         distanceSubtext.textContent = `ETA: ${etaMin} min ${etaSec} sek`;
     };
 
@@ -238,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentBattery  = 78;
                 currentAlt   = 0;
                 currentSpeed = 0;
-                // currentDistance pozostaje ustawiony przez ustawDystansPoczatkowy
 
                 simInterval = setInterval(updateSimulation, 1000);
             } else {
@@ -270,12 +361,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.querySelector(".close-modal-btn");
 
     let leafletMap  = null;
-    let markerCelu  = null;
+    let markerCelu = null;
+    let markerDronaReal = null;
+    let liniaLotuReal = null;
 
     const BAZY_DRONOW = {
-        "Baza Północ (Centrum Logistyczne)": [50.5850, 22.0520],
-        "Baza Południe (Strefa Przemysłowa)": [50.5480, 22.0650],
-        "Baza Zachód (Jednostka Ratownicza)": [50.5650, 22.0150]
+        "Baza Południe (Strefa Przemysłowa)": [50.547381, 22.051606],
+        "Baza Centrum (Jednostka Ratownicza)": [50.571415, 22.069184],
+        "Baza Północ (Centrum Logistyczne)": [50.593352, 22.037311]
     };
 
     const initLeafletMap = () => {
@@ -298,17 +391,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const zapisanyCel = localStorage.getItem("celDrona");
-        if (zapisanyCel) {
-            const coords = JSON.parse(zapisanyCel);
-            markerCelu = L.circleMarker(coords, {
+        const pozDrona = dronePodglad.coords; 
+    
+        if (zapisanyCel && pozDrona) {
+            const coordsCelu = JSON.parse(zapisanyCel);
+
+            // 1. Rysowanie markera celu
+            markerCelu = L.circleMarker(coordsCelu, {
                 radius: 9,
-                color: '#ef4444',
+                color: '#b91c1c',
                 fillColor: '#b91c1c',
                 fillOpacity: 0.9,
                 weight: 2
             }).addTo(leafletMap).bindPopup("<b>Cel misji</b>").openPopup();
 
-            leafletMap.setView(coords, 14);
+            // 2. Rysowanie markera wybranego drona (pobranego z Twojej listy)
+            markerDronaReal = L.circleMarker(pozDrona, {
+                radius: 7,
+                color: '#22c55e',
+                fillColor: '#22c55e', // Zielony kolor aktywnego drona w locie/przygotowaniu
+                fillOpacity: 1,
+                weight: 3
+            }).addTo(leafletMap).bindPopup(`<b>${dronePodglad.name} (Aktualna pozycja)</b>`);
+
+            // 3. RYSOWANIE LINII POŁĄCZENIA POMIĘDZY WYBRANYM DRONEM A JEGO CELEM
+            const punktyLinii = [pozDrona, coordsCelu];
+
+            liniaLotuReal = L.polyline(punktyLinii, {
+                color: '#000000',      // Pomarańczowy kolor linii misji
+                weight: 5,             // Optymalna widoczność na mapie satelitarnej
+                opacity: 0.85,         // Przezroczystość
+                dashArray: '10, 10',   // Przerywana linia operacyjna
+                lineJoin: 'round'
+            }).addTo(leafletMap);
+
+            // 4. Dopasowanie widoku mapy tak, aby operator widział jednocześnie drona i cel
+            const bounds = L.latLngBounds([pozDrona, coordsCelu]);
+            leafletMap.fitBounds(bounds, { padding: [50, 50] });
+
+        } else if (zapisanyCel) {
+            // Fallback, jeśli z jakiegoś powodu pozycja drona nie została zaczytana
+            const coordsCelu = JSON.parse(zapisanyCel);
+            leafletMap.setView(coordsCelu, 14);
         }
     };
 
@@ -333,4 +457,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Inicjalizacja startowa (wywoływana raz na samym dole)
+    restoreListState();
+    if (localStorage.getItem('celDrona')) {
+        czyCzyszczone = false;
+    }
+    filtrujISort();
 });
